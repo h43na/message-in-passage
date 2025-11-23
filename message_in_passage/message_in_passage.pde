@@ -35,7 +35,7 @@ final int SEND = 1;
 final int WRITE_LETTER = 2;
 final int UPLOAD_PHOTO = 3;
 final int RETRIEVE = 4;
-final int READ_LETTER = 5;
+final int READ_MESSAGE = 5;
 final int VIEW_PHOTO = 6;
 
 // default mode @ main screen
@@ -126,15 +126,9 @@ void draw () {
             drawRetrieve ();
             break;
 
-        case READ_LETTER :
+        case READ_MESSAGE :
             drawReadMessage ();
             break;
-        
-        /*
-        case VIEW_PHOTO :
-            drawViewPhoto ();
-            break;
-            */
     }
 
 }
@@ -274,7 +268,6 @@ void drawReadMessage () {
         h.rect (FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
     }
     
-
     drawButton ("put back", BUTTON_LEFT);
     drawButton ("throw away", BUTTON_RIGHT);
 }
@@ -574,7 +567,7 @@ class Photo extends Message {
                 if (dist (960, 520 - (60 * i), mouseX, mouseY) < 50) {
                     choice = messages.get (i);
                     choiceIndex = i;
-                    mode = READ_LETTER;
+                    mode = READ_MESSAGE;
                 }
             }
 
@@ -583,7 +576,7 @@ class Photo extends Message {
             }
             break;
         
-        case READ_LETTER :
+        case READ_MESSAGE :
             if (buttonClicked (BUTTON_LEFT, BUTTON_Y)) {
                 choice.close ();
                 mode = RETRIEVE;
