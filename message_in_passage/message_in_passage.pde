@@ -22,8 +22,9 @@ int choiceIndex;
 /**************
  IMAGES & FONTS
  **************/
-PImage postbox, paperBefore, paperAfter, parcel;
+PImage postbox, paperBefore, paperAfter, photoTexture;
 PFont systemFont;
+// PFont titleFont;
 PFont letterFont;
 
 /*********
@@ -48,6 +49,9 @@ final int BUTTON_LEFT = 480;
 final int BUTTON_RIGHT = 1440;
 final int BUTTON_Y = 700;
 final int BUTTON_SIZE = 100;
+
+// parcels
+color [] parcelColors = {#F2E9D8, #D9C5A3, #B59A72, #3A3A3A};
 
 // letter layout
 final int LETTER_X = 960;
@@ -83,17 +87,19 @@ boolean alertOn = false;
 void setup () {
     size (1920, 1080);
 
-    systemFont = createFont ("Corethan-Bold.otf", 30);
-    letterFont = createFont ("Corethan-Bold.otf", 20);
+    systemFont = createFont ("Author-Handwriting.otf", 56);
+    // titleFont = createFont ("KGLoveMolly.otf", 36);
+    letterFont = createFont ("Corethan-Bold.otf", 18);
     textAlign (CENTER);
 
     postbox = loadImage ("postbox.png");
     paperBefore = loadImage ("paper-before.png");
     paperAfter = loadImage ("paper-after.png");
-    parcel = loadImage ("package.png");
+    photoTexture = loadImage ("photo-texture.png");
     imageMode (CENTER);
 
     h = new HandyRenderer (this);
+    h.setOverrideFillColour (true);
 }
 
 void draw () {
@@ -121,13 +127,14 @@ void draw () {
             break;
 
         case READ_LETTER :
-            drawReadLetter ();
+            drawReadMessage ();
             break;
         
+        /*
         case VIEW_PHOTO :
             drawViewPhoto ();
             break;
-
+            */
     }
 
 }
@@ -142,7 +149,11 @@ void drawMain () {
     // draw parcels
     for (int i = 0; i < messages.size (); i++) {
         messages.get (i).decay ();
-        image (parcel, 960, 720 - (30 * i), 180, 80);
+
+        strokeWeight(2);
+        h.setSeed (messages.get (i).parcelSeed);
+        h.setBackgroundColour (messages.get (i).parcelColor);
+        h.rect (960, 720 - (30 * i), 210, 30);
     }
 
     drawButton ("send", BUTTON_LEFT);
@@ -150,7 +161,7 @@ void drawMain () {
 }
 
 void drawSend () {
-    image (postbox, 960, 900, 1400, 1400);
+    image (postbox, 960, 900, 1200, 1200);
 
     drawTitle ("send what?");
     drawButton ("letter", BUTTON_LEFT);
@@ -165,6 +176,7 @@ void drawWriteLetter () {
     noFill ();
     rectMode (CENTER);
     h.setSeed (1234);
+    strokeWeight(2);
     h.rect (LETTER_X, LETTER_Y, LETTER_WIDTH, LETTER_HEIGHT);
 
     // text area
@@ -185,27 +197,29 @@ void drawUploadPhoto () {
     noFill ();
     rectMode (CENTER);
     h.setSeed (1234);
+    strokeWeight(2);
     h.rect (FRAME_X, FRAME_Y, FRAME_WIDTH, FRAME_HEIGHT);
     
     if (previewPhoto == null) {
-        // h.setBackgroundColour (color (230, 220, 210));
-        fill (180, 165, 140);
+        h.setBackgroundColour (color (180, 165, 140));
+        fill (color (180, 165, 140));
         h.rect (FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
+
+        drawButton ("select photo", FRAME_X, FRAME_Y - 30, 40, 255);
     } else {
         image (previewPhoto.original, FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
         noFill ();
         h.rect (FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
-    }
-    
 
-    drawButton ("select photo", FRAME_X, FRAME_Y - 30, 20);
+        drawButton ("change photo", FRAME_X, FRAME_Y - 30, 40, 255);
+    }
 
     drawButton ("cancel", BUTTON_LEFT);
     drawButton ("send", BUTTON_RIGHT);
 }
 
 void drawRetrieve () {
-    image (postbox, 960, 160, 1400, 1400);
+    image (postbox, 960, 160, 1200, 1200);
     
     // if there is nothing to retrieve, 
     // alert and go back to main screen
@@ -228,19 +242,25 @@ void drawRetrieve () {
 
         for (int i = 0; i < messages.size(); i++) {
             messages.get(i).decay();
-            image(parcel, 960, 600 - (70 * i), 420, 200);
+
+            strokeWeight(4);
+            h.setSeed (messages.get (i).parcelSeed);
+            h.setBackgroundColour (messages.get (i).parcelColor);
+            h.rect (960, 520 - (60 * i), 420, 60);
         }
 
         drawTitle ("retrieve what?", 880);
+        drawButton ("cancel", 960, 920, 40);
     }
 }
 
-void drawReadLetter () {
+void drawReadMessage () {
     if (choice instanceof Letter) {
         choice.display ();
 
         noFill ();
         rectMode (CENTER);
+        strokeWeight(2);
         h.setSeed (1234);
         h.rect (LETTER_X, LETTER_Y, LETTER_WIDTH, LETTER_HEIGHT);
     } else if (choice instanceof Photo) {
@@ -249,6 +269,7 @@ void drawReadLetter () {
         noFill ();
         rectMode (CENTER);
         h.setSeed (1234);
+        strokeWeight(2);
         h.rect (FRAME_X, FRAME_Y, FRAME_WIDTH, FRAME_HEIGHT);
         h.rect (FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
     }
@@ -258,23 +279,11 @@ void drawReadLetter () {
     drawButton ("throw away", BUTTON_RIGHT);
 }
 
-void drawViewPhoto () {
-
-}
-
 
 /****************
  TITLES & BUTTONS
  ****************/
 
-void drawTitle (String label, int y) {
-    fill (0);
-    textFont (systemFont);
-    textAlign (CENTER);
-    text (label, 960, y);
-}
-
-// overload
 void drawTitle (String label) {
     fill (0);
     textFont (systemFont);
@@ -282,8 +291,25 @@ void drawTitle (String label) {
     text (label, 960, TITLE_Y);
 }
 
-void drawButton (String label, int x, int y, int fontSize) {
+// overload
+void drawTitle (String label, int y) {
     fill (0);
+    textFont (systemFont);
+    textAlign (CENTER);
+    text (label, 960, y);
+}
+
+void drawButton (String label, int x) {
+    fill (30);
+    textFont (systemFont);
+    textSize (48);
+    textAlign (CENTER);
+    text (label, x, BUTTON_Y);
+}
+
+// overload
+void drawButton (String label, int x, int y, int fontSize) {
+    fill (30);
     textFont (systemFont);
     textSize (fontSize);
     textAlign (CENTER);
@@ -291,11 +317,12 @@ void drawButton (String label, int x, int y, int fontSize) {
 }
 
 // overload
-void drawButton (String label, int x) {
-    fill (0);
+void drawButton (String label, int x, int y, int fontSize, int fontColor) {
+    fill (fontColor);
     textFont (systemFont);
+    textSize (fontSize);
     textAlign (CENTER);
-    text (label, x, BUTTON_Y);
+    text (label, x, y);
 }
 
 boolean buttonClicked (int x, int y) {
@@ -310,9 +337,13 @@ boolean buttonClicked (int x, int y) {
 abstract class Message {
     float timestamp;
     boolean isOpened = false;
+    int parcelSeed;
+    color parcelColor;
 
     Message () {
         timestamp = millis ();
+        parcelSeed = int (random (1234));
+        parcelColor = parcelColors [int (random (parcelColors.length))];
     }
 
     abstract void decay ();
@@ -347,11 +378,11 @@ class Letter extends Message {
         // random characters fading
         for (int i = 0; i < decayCount; i++) {
             int index = int (random (content.length ()));
-            characterOpacity [index] = max (0, characterOpacity [index] - decayRate);
+            characterOpacity [index] = max (0, characterOpacity [index] - decayRate * 0.8);
         }
 
         // background letter fading
-        letterOpacity = 500 * decayCount * decayRate;    
+        letterOpacity = min (255, 500 * decayCount * decayRate);    
     }
 
     // override
@@ -395,20 +426,28 @@ class Letter extends Message {
 class Photo extends Message {
     PImage original;
     PImage decayed;
-    float [] pixelSaturation;
+    boolean [] pixelFiltered;
+    float [] pixelOpacity;
     float frameOpacity = 255;
 
     Photo (String filename) {
         super ();
         original = loadImage (filename);
-        original.loadPixels ();
+        original.resize (PHOTO_WIDTH, PHOTO_HEIGHT);
         
-        decayed = createImage (PHOTO_WIDTH, PHOTO_HEIGHT, HSB);
+        // create a copy of the image 
+        decayed = createImage (PHOTO_WIDTH, PHOTO_HEIGHT, RGB);
+        decayed.copy (original, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT);
 
         // retrieve pixel saturation
-        pixelSaturation = new float [original.pixels.length];
-        for (int i = 0; i < pixelSaturation.length; i++) {
-            pixelSaturation [i] = saturation (original.pixels [i]);
+        original.loadPixels ();
+
+        pixelOpacity = new float [original.pixels.length];
+        pixelFiltered = new boolean [original.pixels.length];
+
+        // all pixels are fully visible
+        for (int i = 0; i < original.pixels.length; i++) {
+            pixelOpacity [i] = 1.0;
         }
     }
 
@@ -420,13 +459,30 @@ class Photo extends Message {
         float age = millis () - timestamp;
         int decayCount = int (age / 1000);
 
-        for (int i = 0; i < decayCount; i++) {
-            int index = int (random (pixelSaturation.length));
-            pixelSaturation [index] = max (0, pixelSaturation [index] - decayRate * 255);
+        original.loadPixels ();
+        decayed.loadPixels ();
+
+        // base code attribution: https://funprogramming.org/90-Change-pixel-hue-saturation-and-brightness.html
+        for (int i = 0; i < decayCount * 10; i++) {
+            int index = int (random (original.pixels.length));
+
+            if (!pixelFiltered [index]) {
+                float b = brightness (original.pixels [index]);
+
+                if (b > 130) {
+                    decayed.pixels [index] = color (255);
+                } else {
+                    decayed.pixels [index] = color (0);
+                }
+            }
+
+            pixelFiltered [index] = true;
         }
 
+        decayed.updatePixels ();
+
         // background frame fading
-        frameOpacity = 500 * decayCount * decayRate;
+        frameOpacity = min (255, 500 * decayCount * decayRate);
     }
 
     void display () {
@@ -442,18 +498,12 @@ class Photo extends Message {
         tint (255, 255);
 
         // display photo
-        original.loadPixels ();
-        decayed.loadPixels ();
-
-        for (int i = 0; i < decayed.pixels.length; i++) {
-            float h = hue (original.pixels [i]);
-            float b = brightness (original.pixels [i]);
-
-            decayed.pixels [i] = color (h, pixelSaturation [i], b);
-        }
-
-        decayed.updatePixels ();
         image (decayed, FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
+
+        tint (255, frameOpacity * 0.5);
+        image (photoTexture, FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
+        // reset tint
+        tint (255, 255);
     }
 }
 
@@ -482,24 +532,32 @@ class Photo extends Message {
         
         case WRITE_LETTER : 
             if (buttonClicked (BUTTON_LEFT, BUTTON_Y)) {
-                mode = MAIN;
-            } else if (buttonClicked (BUTTON_RIGHT, BUTTON_Y)) {
-                messages.add (new Letter (letterInput));
                 // reset letter
                 letterInput = "";
                 mode = MAIN;
+            } else if (buttonClicked (BUTTON_RIGHT, BUTTON_Y)) {
+                if (letterInput != "") {
+                    messages.add (new Letter (letterInput));
+                    // reset letter
+                    letterInput = "";
+                    mode = MAIN;
+                } else {
+                    println ("no message written");
+                }
             }
             break;
 
         case UPLOAD_PHOTO :
             if (buttonClicked (BUTTON_LEFT, BUTTON_Y)) {
                 uploadedPhoto = null;
+                previewPhoto = null;
                 mode = MAIN;
             } else if (buttonClicked (BUTTON_RIGHT, BUTTON_Y)) {
                 // send photo
                 if (uploadedPhoto != null) {
                     messages.add (new Photo (uploadedPhoto));
                     uploadedPhoto = null;
+                    previewPhoto = null;
                     mode = MAIN;
                 } else {
                     println ("no photo selected");
@@ -513,11 +571,15 @@ class Photo extends Message {
         
         case RETRIEVE :
             for (int i = 0; i < messages.size (); i++) {
-                if (dist (960, 600 - (70 * i), mouseX, mouseY) < 50) {
+                if (dist (960, 520 - (60 * i), mouseX, mouseY) < 50) {
                     choice = messages.get (i);
                     choiceIndex = i;
                     mode = READ_LETTER;
                 }
+            }
+
+            if (buttonClicked (960, 920)) {
+                mode = MAIN;
             }
             break;
         
