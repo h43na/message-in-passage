@@ -35,7 +35,7 @@ After making sure all libraries and assets are included, launch the `message.pde
 https://github.com/user-attachments/assets/492d7793-2ceb-4762-8468-bfc3c39bd772
 
 ## 📋 Checklist
-**Code Requirements:**
+**Technical Requirements:**
 - [x] Inheritance
 - [x] Abstraction
 - [x] Overloading
