@@ -2,8 +2,8 @@
  * MESSAGE IN PASSAGE
  * Haena Cho
  *  
- * Message in Passage is a Processing app that allows the sending and retrieving of messages 
- * while the messages visually decay over time (letters fade and images erode, embracing the passage of time).
+ * Message in Passage is a digital postbox system that allows the sending and retrieving of messages 
+ * while the sent messages visually decay over time (letters fade and images erode, embracing the passage of time).
  */
 
 /*********
@@ -24,7 +24,6 @@ int choiceIndex;
  **************/
 PImage postbox, paperBefore, paperAfter, photoTexture;
 PFont systemFont;
-// PFont titleFont;
 PFont letterFont;
 
 /*********
@@ -74,10 +73,11 @@ String letterInput = "";
 Photo previewPhoto;
 String uploadedPhoto;
 
+boolean emptyAlert = false;
 boolean waitingForPhoto = false;
 
 // decay
-float decayRate = 0.01;
+float decayRate = 0.01; // change this value to adjust the overall speed of decay
 
 // retrieve
 int retrieveTime = 0;
@@ -88,7 +88,6 @@ void setup () {
     size (1920, 1080);
 
     systemFont = createFont ("Author-Handwriting.otf", 56);
-    // titleFont = createFont ("KGLoveMolly.otf", 36);
     letterFont = createFont ("Corethan-Bold.otf", 18);
     textAlign (CENTER);
 
@@ -140,6 +139,9 @@ void draw () {
 void drawMain () {
     image (postbox, 960, 540, 600, 600);
 
+    // reset empty alert
+    emptyAlert = false;
+
     // draw parcels
     for (int i = 0; i < messages.size (); i++) {
         messages.get (i).decay ();
@@ -180,6 +182,15 @@ void drawWriteLetter () {
     textAlign (LEFT);
     text (letterInput, LETTER_X, LETTER_Y, TEXT_WIDTH, TEXT_HEIGHT);
 
+    // alert when letter is empty
+    if (emptyAlert) {
+        fill (color (#e23d45));
+        textFont (systemFont);
+        textSize (40);
+        textAlign (CENTER);
+        text ("you cannot send an empty message", 960, 920);
+    }
+
     drawButton ("cancel", BUTTON_LEFT);
     drawButton ("send", BUTTON_RIGHT);
 }
@@ -208,6 +219,15 @@ void drawUploadPhoto () {
         drawButton ("change photo", FRAME_X, FRAME_Y - 30, 40, 255);
     }
 
+    // alert when photo is not selected
+    if (emptyAlert) {
+        fill (color (#e23d45));
+        textFont (systemFont);
+        textSize (40);
+        textAlign (CENTER);
+        text ("you cannot send an empty message", 960, 920);
+    }
+
     drawButton ("cancel", BUTTON_LEFT);
     drawButton ("send", BUTTON_RIGHT);
 }
@@ -234,6 +254,7 @@ void drawRetrieve () {
     } else {
         alertOn = false;
 
+        // display message in forms of parcels
         for (int i = 0; i < messages.size(); i++) {
             messages.get(i).decay();
 
@@ -244,26 +265,23 @@ void drawRetrieve () {
         }
 
         drawTitle ("retrieve what?", 880);
-        drawButton ("cancel", 960, 920, 40);
+        drawButton ("cancel", 960, 930, 40);
     }
 }
 
 void drawReadMessage () {
-    if (choice instanceof Letter) {
-        choice.display ();
+    // display the message
+    choice.display ();
 
-        noFill ();
-        rectMode (CENTER);
-        strokeWeight(2);
-        h.setSeed (1234);
+    noFill ();
+    strokeWeight(2);
+    rectMode (CENTER);
+    h.setSeed (1234);
+
+    // display message frames
+    if (choice instanceof Letter) {
         h.rect (LETTER_X, LETTER_Y, LETTER_WIDTH, LETTER_HEIGHT);
     } else if (choice instanceof Photo) {
-        choice.display ();
-
-        noFill ();
-        rectMode (CENTER);
-        h.setSeed (1234);
-        strokeWeight(2);
         h.rect (FRAME_X, FRAME_Y, FRAME_WIDTH, FRAME_HEIGHT);
         h.rect (FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
     }
@@ -353,7 +371,7 @@ class Letter extends Message {
         super ();
         content = tempContent;
 
-        // all characters are fully visible
+        // all characters are fully visible at first
         characterOpacity = new float [content.length ()];
         for (int i = 0; i < characterOpacity.length; i++) {
             characterOpacity [i] = 1.0;
@@ -369,12 +387,12 @@ class Letter extends Message {
         int decayCount = int (age / 1000);
 
         // random characters fading
-        for (int i = 0; i < decayCount; i++) {
+        for (int i = 0; i < decayCount * 20; i++) {
             int index = int (random (content.length ()));
-            characterOpacity [index] = max (0, characterOpacity [index] - decayRate * 0.8);
+            characterOpacity [index] = max (0, characterOpacity [index] - decayRate * 0.01);
         }
 
-        // background letter fading
+        // background letter eroding
         letterOpacity = min (255, 500 * decayCount * decayRate);    
     }
 
@@ -382,29 +400,31 @@ class Letter extends Message {
     void display () {
         super.display ();
 
-        // display letter background (layer for decay)
+        // display letter background
         tint (255, 255);
         image (paperBefore, LETTER_X, LETTER_Y, LETTER_WIDTH, LETTER_HEIGHT);
 
+        // decay layer
         tint (255, letterOpacity);
         image (paperAfter, LETTER_X, LETTER_Y, LETTER_WIDTH, LETTER_HEIGHT);
         // reset tint
         tint (255, 255);
 
         // display text
-        // set text position
-        float x = LETTER_X - TEXT_WIDTH / 2;
-        float y = LETTER_Y - TEXT_HEIGHT / 2;
-
         textFont (letterFont);
         textLeading (36);
         textAlign (LEFT);
 
+        // set text position
+        float x = LETTER_X - TEXT_WIDTH / 2;
+        float y = LETTER_Y - TEXT_HEIGHT / 2;
+
+        // display letter contents character by character
         for (int i = 0; i < content.length (); i++) {
             char c = content.charAt (i);
 
             // line change
-            if (c == '\n' || x > 1110) {
+            if (c == '\n' || x > 1110 - textWidth (str (c)) / 2) {
                 x = LETTER_X - TEXT_WIDTH / 2;
                 y += 36;
             }
@@ -420,7 +440,6 @@ class Photo extends Message {
     PImage original;
     PImage decayed;
     boolean [] pixelFiltered;
-    float [] pixelOpacity;
     float frameOpacity = 255;
 
     Photo (String filename) {
@@ -432,16 +451,8 @@ class Photo extends Message {
         decayed = createImage (PHOTO_WIDTH, PHOTO_HEIGHT, RGB);
         decayed.copy (original, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT);
 
-        // retrieve pixel saturation
         original.loadPixels ();
-
-        pixelOpacity = new float [original.pixels.length];
         pixelFiltered = new boolean [original.pixels.length];
-
-        // all pixels are fully visible
-        for (int i = 0; i < original.pixels.length; i++) {
-            pixelOpacity [i] = 1.0;
-        }
     }
 
     // override
@@ -455,8 +466,10 @@ class Photo extends Message {
         original.loadPixels ();
         decayed.loadPixels ();
 
+        // change the pixel's brightness value to 255 (white) or 0 (black)
+        // depending on whether the original value is over 130 or not
         // base code attribution: https://funprogramming.org/90-Change-pixel-hue-saturation-and-brightness.html
-        for (int i = 0; i < decayCount * 10; i++) {
+        for (int i = 0; i < decayCount * 20; i++) {
             int index = int (random (original.pixels.length));
 
             if (!pixelFiltered [index]) {
@@ -474,17 +487,18 @@ class Photo extends Message {
 
         decayed.updatePixels ();
 
-        // background frame fading
+        // background frame eroding
         frameOpacity = min (255, 500 * decayCount * decayRate);
     }
 
     void display () {
         super.display ();
 
-        // display photo frame background (layer for decay)
+        // display photo frame background
         tint (255, 255);
         image (paperBefore, FRAME_X, FRAME_Y, FRAME_WIDTH, FRAME_HEIGHT);
 
+        // decay layer
         tint (255, frameOpacity);
         image (paperAfter, FRAME_X, FRAME_Y, FRAME_WIDTH, FRAME_HEIGHT);
         // reset tint
@@ -493,6 +507,7 @@ class Photo extends Message {
         // display photo
         image (decayed, FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
 
+        // decay layer
         tint (255, frameOpacity * 0.5);
         image (photoTexture, FRAME_X, FRAME_Y - 30, PHOTO_WIDTH, PHOTO_HEIGHT);
         // reset tint
@@ -525,17 +540,20 @@ class Photo extends Message {
         
         case WRITE_LETTER : 
             if (buttonClicked (BUTTON_LEFT, BUTTON_Y)) {
+                emptyAlert = false;
                 // reset letter
                 letterInput = "";
                 mode = MAIN;
             } else if (buttonClicked (BUTTON_RIGHT, BUTTON_Y)) {
                 if (letterInput != "") {
+                    emptyAlert = false;
                     messages.add (new Letter (letterInput));
                     // reset letter
                     letterInput = "";
                     mode = MAIN;
                 } else {
-                    println ("no message written");
+                    emptyAlert = true;
+                    // println ("no message written");
                 }
             }
             break;
@@ -548,14 +566,17 @@ class Photo extends Message {
             } else if (buttonClicked (BUTTON_RIGHT, BUTTON_Y)) {
                 // send photo
                 if (uploadedPhoto != null) {
+                    emptyAlert = false;
                     messages.add (new Photo (uploadedPhoto));
                     uploadedPhoto = null;
                     previewPhoto = null;
                     mode = MAIN;
                 } else {
-                    println ("no photo selected");
+                    emptyAlert = true;
+                    // println ("no photo selected");
                 }
             } else if (buttonClicked (FRAME_X, FRAME_Y - 30)) {
+                emptyAlert = false;
                 // upload photo
                 waitingForPhoto = true;
                 selectInput ("select a photo to send: ", "fileSelected");
@@ -590,6 +611,8 @@ class Photo extends Message {
 
  void keyTyped () {
     if (mode == WRITE_LETTER) {
+        emptyAlert = false;
+
         if (key == BACKSPACE && letterInput.length() > 0) {
             letterInput = letterInput.substring(0, letterInput.length() - 1);
         } else if (key == ENTER || key == RETURN) {
@@ -601,6 +624,8 @@ class Photo extends Message {
  }
 
  void fileSelected (File selection) {
+    emptyAlert = false;
+
     if (selection == null) {
         println ("no photo selected");
         uploadedPhoto = null;
