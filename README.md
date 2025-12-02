@@ -13,12 +13,12 @@ Message in Passage (MiP) is an interactive Processing app that explores how embr
    Photos would erode into worn out black and white photos, depending on whether or not the original pixel's brightness was above the threshhold.
 
 ## Setup
-MiP was created with:
+After making sure all libraries and assets are included, launch the 'message.pde' file.
+
+**MiP was created with:**
 - [Handy library](https://www.gicentre.net/handy/using)
 
-Make sure all assets are included and launch the 'message.pde' file.
-
-Assets:
+**Assets:**
 - data
   - Author-Handwriting.otf
   - Corethan-Bold.otf
