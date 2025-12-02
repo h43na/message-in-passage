@@ -6,10 +6,10 @@ Message in Passage (MiP) is an interactive Processing app that explores how embr
 ---
 
 ## Key Features
-1. Decay of Letters
+**1. Decay of Letters**  
    For letters, characters of the contents would randomly and gradually fade, eventually making the message invisible. 
 
-2. Decay of Photos
+**2. Decay of Photos**  
    Photos would erode into worn out black and white photos, depending on whether or not the original pixel's brightness was above the threshhold.
 
 ## Setup
