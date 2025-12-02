@@ -34,6 +34,17 @@ After making sure all libraries and assets are included, launch the `message.pde
 ## 🎬 Demo Video
 https://github.com/user-attachments/assets/492d7793-2ceb-4762-8468-bfc3c39bd772
 
+## 📋 Checklist
+**Code Requirements:**
+- [x] Inheritance
+- [x] Abstraction
+- [x] Overloading
+- [x] Overriding
+- [x] Polymorphism
+- [x] File Processing (loading and saving to hard drive)
+- [ ] Exception Catching (optional)
+- [x] Java and Processing libraries (optional)
+
 ## 🎁 Attributions
 The `postbox.png` was designed by [Freepik](www.freepik.com). The photo decay method was inspired by a post from [Fun Programming](https://funprogramming.org/90-Change-pixel-hue-saturation-and-brightness.html). ChatGPT was used to debug error messages, especially when implementing the `display ()` method for the Photo class.
 
