@@ -91,10 +91,10 @@ void setup () {
     letterFont = createFont ("Corethan-Bold.otf", 18);
     textAlign (CENTER);
 
-    postbox = loadImage ("postbox.png");
-    paperBefore = loadImage ("paper-before.png");
-    paperAfter = loadImage ("paper-after.png");
-    photoTexture = loadImage ("photo-texture.png");
+    postbox = loadImage ("images/postbox.png");
+    paperBefore = loadImage ("images/paper-before.png");
+    paperAfter = loadImage ("images/paper-after.png");
+    photoTexture = loadImage ("images/photo-texture.png");
     imageMode (CENTER);
 
     h = new HandyRenderer (this);
